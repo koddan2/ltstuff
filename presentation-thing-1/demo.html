@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+
+    <title>reveal.js – The HTML Presentation Framework</title>
+
+    <meta
+      name="description"
+      content="A framework for easily creating beautiful presentations using HTML"
+    />
+    <meta name="author" content="Hakim El Hattab" />
+
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta
+      name="apple-mobile-web-app-status-bar-style"
+      content="black-translucent"
+    />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <link rel="stylesheet" href="dist/reset.css" />
+    <link rel="stylesheet" href="dist/reveal.css" />
+    <link rel="stylesheet" href="dist/theme/black.css" id="theme" />
+
+    <!-- Theme used for syntax highlighting of code -->
+    <link rel="stylesheet" href="plugin/highlight/monokai.css" />
+
+    <style IMPORTANT="true">
+      .chat-prompt,
+      .chat-response {
+        display: none;
+      }
+      .chat-prompt-rendered,
+      .chat-response-rendered {
+        text-align: left;
+        border: 1px solid silver;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="reveal">
+      <!-- Any section element inside of this container is displayed as a slide -->
+      <div class="slides">
+        <section>Welcome -> the next slide is the "prompt"</section>
+        <section>
+          <p class="chat-prompt">
+            This could be thought of as a "prompt"-like thingamajig. This is
+            rendered character by character in an asynchronous loop using
+            setTimeout. The following is just extra text: Lorem Ipsum is simply
+            dummy text of the printing and typesetting industry. Lorem Ipsum has
+            been the industry's standard dummy text ever since the 1500s, when
+            an unknown printer took a galley of type and scrambled it to make a
+            type specimen book. It has survived not only five centuries, but
+            also the leap into electronic typesetting, remaining essentially
+            unchanged. It was popularised in the 1960s with the release of
+            Letraset sheets containing Lorem Ipsum passages, and more recently
+            with desktop publishing software like Aldus PageMaker including
+            versions of Lorem Ipsum. Why do we use it?
+          </p>
+        </section>
+
+        <section>-> the next slide is the "response"</section>
+
+        <section>
+          <p class="chat-response">
+            This emulates a response getting output from an AI. It is rendered
+            word by word in order to mimic how Chat GPT and Copilot does things.
+            The rest of this text is just for show. Special care needs to be
+            taken in order to make sure that the content fits the reveal.js
+            presentation. It is a long established fact that a reader will be
+            distracted by the readable content of a page when looking at its
+            layout. The point of using Lorem Ipsum is that it has a more-or-less
+            normal distribution of letters, as opposed to using 'Content here,
+            content here', making it look like readable English. Many desktop
+            publishing packages and web page editors now use Lorem Ipsum as
+            their default model text, and a search for 'lorem ipsum' will
+            uncover many web sites still in their infancy. Various versions have
+            evolved over the years, sometimes by accident, sometimes on purpose
+            (injected humour and the like). Where does it come from? Contrary to
+            popular belief, Lorem Ipsum is not simply random text. It has roots
+            in a piece of classical Latin literature from 45 BC, making it over
+            2000 years old. Richard McClintock, a Latin professor at
+            Hampden-Sydney College in Virginia, looked up one of the more
+            obscure Latin words, consectetur, from a Lorem Ipsum passage, and
+            going through the cites of the word in classical literature,
+            discovered the undoubtable source. Lorem Ipsum comes from sections
+            1.10.32 and 1.10.33 of "de Finibus Bonorum et Malorum" (The Extremes
+            of Good and Evil) by Cicero, written in 45 BC. This book is a
+            treatise on the theory of ethics, very popular during the
+            Renaissance. The first line of Lorem Ipsum, "Lorem ipsum dolor sit
+            amet..", comes from a line in section 1.10.32. The standard chunk of
+            Lorem Ipsum used since the 1500s is reproduced below for those
+            interested. Sections 1.10.32 and 1.10.33 from "de Finibus Bonorum et
+            Malorum" by Cicero are also reproduced in their exact original form,
+            accompanied by English versions from the 1914 translation by H.
+            Rackham. Where can I get some? There are many variations of passages
+            of Lorem Ipsum available, but the majority have suffered alteration
+            in some form, by injected humour, or randomised words which don't
+            look even slightly believable. If you are going to use a passage of
+            Lorem Ipsum, you need to be sure there isn't anything embarrassing
+            hidden in the middle of text. All the Lorem Ipsum generators on the
+            Internet tend to repeat predefined chunks as necessary, making this
+            the first true generator on the Internet. It uses a dictionary of
+            over 200 Latin words, combined with a handful of model sentence
+            structures, to generate Lorem Ipsum which looks reasonable. The
+            generated Lorem Ipsum is therefore always free from repetition,
+            injected humour, or non-characteristic words etc.
+          </p>
+        </section>
+      </div>
+    </div>
+
+    <script src="dist/reveal.js"></script>
+    <script>
+      const RevealChatText = () => ({
+        id: "reveal-chat-text",
+        init: (reveal) => {
+          const map = new WeakMap();
+          reveal.on("slidechanged", (event) => {
+            // event.previousSlide, event.currentSlide, event.indexh, event.indexv
+            console.log(event, reveal.getState());
+            if (map.has(event.currentSlide)) {
+              map.get(event.currentSlide).call(null);
+              // does not work
+              //   event.currentSlide.style.top = "30px";
+            }
+          });
+
+          const intervalMax = 50;
+
+          /** @type {HTMLElement[]} */
+          const prompts = Array.from(
+            reveal.getRevealElement().querySelectorAll(".chat-prompt")
+          );
+
+          /** @type {HTMLElement[]} */
+          const responses = Array.from(
+            reveal.getRevealElement().querySelectorAll(".chat-response")
+          );
+
+          prompts.forEach((element) => {
+            const newElement = document.createElement("div");
+            newElement.classList.add("chat-prompt-rendered");
+            newElement.textContent = "> ";
+            const text = element.innerText.replace(/\s+/g, " ");
+            element.parentElement.insertBefore(newElement, element);
+            let counter = 0;
+            const update = () => {
+              newElement.textContent += text[counter++];
+              if (counter < text.length) {
+                setTimeout(update, (Math.random() * intervalMax) | 0);
+              }
+            };
+            // update();
+            map.set(element.parentElement, update);
+          });
+
+          responses.forEach((element) => {
+            const newElement = document.createElement("div");
+            newElement.classList.add("chat-response-rendered");
+            newElement.textContent = "> ";
+            const text = element.innerText.replace(/\s+/g, " ");
+            element.parentElement.insertBefore(newElement, element);
+            let counter = 0;
+            let words = text.split(" ");
+            const update = () => {
+              newElement.textContent += words[counter++] + " ";
+              if (counter < words.length) {
+                setTimeout(update, (Math.random() * intervalMax * 3) | 0);
+              }
+            };
+            // update();
+            map.set(element.parentElement, update);
+          });
+        },
+      });
+
+      // Also available as an ES module, see:
+      // https://revealjs.com/initialization/
+      Reveal.initialize({
+        controls: true,
+        progress: true,
+        // center: true,
+        center: false,
+        hash: true,
+
+        // Learn about plugins: https://revealjs.com/plugins/
+        plugins: [
+          RevealChatText,
+        ],
+      });
+    </script>
+  </body>
+</html>
